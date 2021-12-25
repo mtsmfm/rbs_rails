@@ -34,7 +34,7 @@ module RbsRails
         Rails.application.eager_load!
 
         dep_builder = DependencyBuilder.new
-        
+
         ::ActiveRecord::Base.descendants.each do |klass|
           next unless RbsRails::ActiveRecord.generatable?(klass)
           next if ignore_model_if&.call(klass)

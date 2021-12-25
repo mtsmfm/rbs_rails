@@ -402,13 +402,16 @@ module RbsRails
         return @parse_model_file if defined?(@parse_model_file)
 
         path = Rails.root.join('app/models/', klass_name.underscore + '.rb')
-        return @parse_model_file = nil unless path.exist?
-        return [] unless path.exist?
+        if path.exist?
+          original_code = path.read
 
-        ast = Parser::CurrentRuby.parse path.read
-        return @parse_model_file = nil unless path.exist?
-
-        @parse_model_file = ast
+          modules = Rails.autoloaders.main.to_unload.slice(*klass.included_modules.map(&:name).uniq)
+          code = ([original_code] + modules.map {|_mod_name, (mod_path, *)| File.read(mod_path) }).join("\n")
+          ast = Parser::CurrentRuby.parse code
+          @parse_model_file = ast
+        else
+          @parse_model_file = nil
+        end
       end
 
       private def traverse(node, &block)
